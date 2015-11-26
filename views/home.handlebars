@@ -1,0 +1,173 @@
+<h1 class="text-center bg-primary">How to Use the Twitch API by Ryan Marsh</h1>
+<h2>How-to Focus</h2>
+<p>
+	This how-to will focus on data returned from the Twitch API that can be accessed by <em>any</em> user. Calls to the Twitch API are basically split between public data and private requests that Twitch streamers can utilize to maintain their channels. We will focus on the former to avoid dealing with Twitch user authentication and to narrow the content of the how-to. The main purpose of this how-to is explain data returned from the API and to showcase some of the things that can be done with that data.
+</p>
+<h2>API Access</h2>
+<p>
+	We’ll be accessing the Twitch API through the base URL <code>https://api.twitch.tv/kraken</code>. Every section of the API can be accessed by appending to this URL and making it more specific. We will only be <em>getting</em> data from Twitch. All requests will be GET requests. The parameter <code>api_version=3</code> will be included in every request. This way all requests will use version 3 of the API. This is the current version of the API. Using this parameter prevents any code used from breaking after a new API version is introduced.
+</p>
+<h2>Using Node.js and its Request Module</h2>
+<p>
+	All HTTP requests will be made using Node.js and the Request module to avoid any issues with client-side HTTP calls and CORS. Making the HTTP calls server-side with Node enables us to sidestep potential problems and to log API call results to the Node.js command prompt. Here’s what a call to the base API looks like using these tools:
+</p>
+<pre>
+request('https://api.twitch.tv/kraken?api_version=3', function(err, response, body){
+	console.log(body);
+});
+</pre>
+<p>
+	This request logs the following JSON:
+</p>
+<pre>
+{"_links":
+	{"user":"https://api.twitch.tv/kraken/user",
+	 "channel":"https://api.twitch.tv/kraken/channel",
+	 "search":"https://api.twitch.tv/kraken/search",
+	 "streams":"https://api.twitch.tv/kraken/streams",
+	 "ingests":"https://api.twitch.tv/kraken/ingests",
+	 "teams":"https://api.twitch.tv/kraken/teams"},
+ "token":
+ 	{"valid":false,"authorization":null}}
+</pre>
+<p>
+	This returned object includes the property <code>_links</code>. Here <code>_links</code> gives us access to the index level of the API through an object. That is to say we could parse this string to an object with <code>var prsdBody = JSON.parse(body)</code> and then make a request using <code>prsdBody._links.search</code> instead of manually typing in the API’s search URL.
+</p>
+<br>
+<br>
+<h1 class="text-center">Emoticons</h1>
+<h2>A Hidden Request</h2>
+<p>
+	The Twitch API documentation supplies a URL that will return a list of all Twitch emoticons. This URL is <code>https://api.twitch.tv/kraken/chat/emoticons</code>. There are probably thousands of Twitch emoticons. So, dealing with this huge list can be a pain if you’re just looking for a particular streamer’s set of emoticons. There is a URL not included in the documentation that will return a list of all emoticons that can be used in a streamer’s chat channel. This URL is <code>https://api.twitch.tv/kraken/chat/USERNAME/emoticons</code>. The <code>USERNAME</code> keyword has to be replaced with a specific Twitch channel name. The returned list includes emoticons for that channel’s subscribers and global emoticons that can be used in any channel chat. Here is a sample of what is returned by that URL with <code>LIRIK</code> as the username:
+</p>
+<pre>
+{"_links":{"self":"https://api.twitch.tv/kraken/chat/lirik/emoticons"},
+ 
+ "emoticons":
+ 	[{"width":28,"height":28,"regex":"lirikSCARED","state":"active","subscriber_only":true,
+ 	"url":"http://static-cdn.jtvnw.net/jtv_user_pictures/emoticon-73240-src-4265367a526917a0-28x28.png"},
+
+ 	{"width":28,"height":28,"regex":"lirikHOLD","state":"active","subscriber_only":true,
+	 "url":"http://static-cdn.jtvnw.net/jtv_user_pictures/emoticon-72445-src-5538ed8d3ce5bc69-28x28.png"},
+
+	{"width":28,"height":28,"regex":"lirikPISS","state":"active","subscriber_only":true,
+	 "url":"http://static-cdn.jtvnw.net/jtv_user_pictures/emoticon-67162-src-6f70dae840ada9bf-28x28.png"},
+
+	{"width":28,"height":28,"regex":"lirikGOOD","state":"active","subscriber_only":true,
+	 "url":"http://static-cdn.jtvnw.net/jtv_user_pictures/emoticon-65389-src-4269e64ea029ff7f-28x28.png"},
+
+	{"width":28,"height":28,"regex":"lirikOBESE","state":"active","subscriber_only":true,
+	 "url":"http://static-cdn.jtvnw.net/jtv_user_pictures/emoticon-58560-src-56a1ac4f1e022882-28x28.png"}]}
+</pre>
+<h2>Emoticon Properties</h2>
+<p>
+	The properties of these emoticons are fairly self-explanatory. The <code>width</code> and <code>height</code> properties are the measure of the emoticon in pixels. The <code>regex</code> property is the name of the emote, which will cause the emote to display in the user’s twitch chat. The <code>state</code> property indicates whether the emote can currently be used. The <code>subscriber_only</code> property indicates whether an emote can only be used by a channel subscriber or any regular user. The <code>url</code> property is where the emoticon image can be found.
+</p>
+<h2>Getting Subscriber Emoticons</h2>
+<p>
+	If we want the names of every subscriber emoticon for LIRIK’s Twitch chat, we could filter the channel’s emoticons by the <code>subscriber_only</code> property and then output a list of every <code>regex</code> property in that filtered list. Here’s an example of how to do that:
+</p>
+<pre>
+request('https://api.twitch.tv/kraken/chat/LIRIK/emoticons?api_version=3', function(err, response, body){
+	var emoticons = JSON.parse(body).emoticons;
+	var subEmotes = emoticons.filter(function(current){
+		return current.subscriber_only === true;
+	});
+	subEmotes.forEach(function(current){
+		console.log(current.regex);
+	});
+});
+</pre>
+<h4>Here are the first five emoticons that were logged to the console: <code>[{{emotes}}]</code>.</h4>
+<br>
+<br>
+<h1 class="text-center">Top Games</h1>
+<h2>Game Objects</h2>
+<p>
+	We can get a list of the top games being streamed on Twitch by making a call to the URL, <code>https://api.twitch.tv/kraken/games/top</code>. By default, this will return a list of the top 10 games on Twitch. We can limit the amount of games returned to 1 by including the parameter <code>limit=1</code> in the URL. Here is an example highlighting how to log the top game on Twitch to the console:
+</p>
+<pre>
+request('https://api.twitch.tv/kraken/games/top?limit=1&api_version=3', function(err, response, body){
+	console.log(JSON.parse(body).top[0]);
+});
+</pre>
+<p>
+	The following top game object is included in the body:
+</p>
+<pre>
+{ viewers: 141582,
+  channels: 1889,
+  game:
+   { name: 'League of Legends',
+     _id: 21779,
+     giantbomb_id: 24024,
+     box:
+      { large: 'http://static-cdn.jtvnw.net/ttv-boxart/League%20of%20Legends-272x380.jpg',
+        medium: 'http://static-cdn.jtvnw.net/ttv-boxart/League%20of%20Legends-136x190.jpg',
+        small: 'http://static-cdn.jtvnw.net/ttv-boxart/League%20of%20Legends-52x72.jpg',
+        template: 'http://static-cdn.jtvnw.net/ttv-boxart/League%20of%20Legends-{width}x{height}.jpg' },
+     logo:
+      { large: 'http://static-cdn.jtvnw.net/ttv-logoart/League%20of%20Legends-240x144.jpg',
+        medium: 'http://static-cdn.jtvnw.net/ttv-logoart/League%20of%20Legends-120x72.jpg',
+        small: 'http://static-cdn.jtvnw.net/ttv-logoart/League%20of%20Legends-60x36.jpg',
+        template: 'http://static-cdn.jtvnw.net/ttv-logoart/League%20of%20Legends-{width}x{height}.jpg' },
+     _links: {} } }
+</pre>
+<h2>Game Object Properties</h2>
+<p>
+	We’ll go over the properties of the game object. The <code>viewers</code> property is the amount of viewers currently watching a channel that is streaming this game. The <code>channels</code> property is the amount of channels that are currently streaming the game. The <code>game.name</code> property is the name of the game all of this data is about. <code>game._id</code> is an internal identification number for games that can be streamed on Twitch. The <code>game.giantbomb_id</code> property is an internal identification number for the game on giantbomb.com. This id could potentially be used to access the game listing on giantbomb.com through the giant bomb API. It’s unclear why this was integrated with the Twitch API. There is no documentation on the subject. The <code>game.box</code> and <code>game.logo</code> properties include URLs for different sizes of the box art and game logo respectively. 
+</p>
+<h2>Using the Game Object</h2>
+<p>
+	One way we could use this game object is to display the amount of viewers for the top game on twitch. Here is a call to the Twitch API that will log that amount to the console:
+</p>
+<pre>
+request('https://api.twitch.tv/kraken/games/top?limit=1&api_version=3', function(err, response, body){
+	console.log(JSON.parse(body).top[0].viewers);
+});
+</pre>
+<h4>The viewer count for the {{topGame}} is currently: {{viewers}}.</h4>
+<br>
+<br>
+<h1 class="text-center">Teams</h1>
+<h2>Team Objects</h2>
+<p>
+	We can get a list of the teams that a user’s channel is part of by making a call to the URL, <code>https://api.twitch.tv/kraken/channels/test_channel/teams</code>. <code>test_channel</code> should be replaced by the name of the channel you want team information on. If we wanted to log the teams that LIRIK is currently part of, we could make the following request:
+</p>
+<pre>
+request('https://api.twitch.tv/kraken/channels/LIRIK/teams?api_version=3', function(err, response, body){
+	console.log(JSON.parse(body));
+});
+</pre>
+<p>
+	Here's a sample team object from the response:
+</p>
+<pre>
+{ _id: 719,
+ name: 'thebeanbandits',
+ info: 'Here is where you will find channels belonging to The Bean Bandits! You're encouraged to check out, say hi, and follow anyone you see online! This group was reorganised some time ago. Since that time, invites to members have been sent out, not requested as they previously were. Any requests to join will unfortunately be dismissed. This group is an exclusive privilege to outstanding members of Lirik's community and invites will be sent to those who are deemed as such. Thank you for reading.',
+ display_name: 'The Bean Bandits',
+ created_at: '2013-07-01T22:57:42Z',
+ updated_at: '2014-04-07T18:35:03Z',
+ logo: null,
+ banner: null,
+ background: 'http://static-cdn.jtvnw.net/jtv_user_pictures/team-thebeanbandits-background_image-befc5ab50ff6cfe5.png', }
+</pre>
+<h2>Team Object Properties</h2>
+<p>
+	We’ll go over the properties of the sample team object. <code>_id</code> is an internal identification number for this particular team. The <code>name</code> property is an identification string for the team. The <code>info</code> property is a string representation of HTML that contains any information about the team that the team creator wanted to make public. The <code>display_name</code> property is how the team name should be displayed to users. This is controlled by the team creator. The <code>created_at</code> and <code>updated_at</code> properties are the dates and times that the team was created and last updated. The <code>logo</code> property is a URL leading to the team logo. The <code>logo</code> value can be null. The <code>banner</code> property is a URL leading to the team banner. The <code>banner</code> value can be null. The <code>background</code> property is a URL leading to the team background image. The <code>background</code> value can be null.
+</p>
+<h2>Using the Team Object</h2>
+<p>
+	One way we can use the team object is to get the display name of the first team that a channel is part of. We could get the display name of LIRIK’s first team with the following request:
+</p>
+<pre>
+request('https://api.twitch.tv/kraken/channels/LIRIK/teams?api_version=3', function(err, response, body){
+	console.log(JSON.parse(body).teams[0].display_name);
+});
+</pre>
+<h4>The name of LIRIK's primary team is: {{team}}.</h4>
+<br>
+<br>
+<br>
+<br>
