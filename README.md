@@ -5,4 +5,6 @@ CS290-API-HowTo is a short how-to guide for the Twitch API that was created for 
 #### To create a local instance of the how-to guide:  
 1. Install [NodeJS](https://nodejs.org/)
 2. Clone this repository
-3. Run `node apiCalls.js` at the `CS290-API-HowTo/` directory.
+3. Obtain a [Twitch API Client ID](https://www.twitch.tv/settings/connections)
+4. Insert your client ID at line 12 of apiCalls.js so it reads `var clientId = 'client_id=YOUR_CLIENT_ID';`
+5. Run `node apiCalls.js` at the `CS290-API-HowTo/` directory.
