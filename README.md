@@ -8,3 +8,4 @@ CS290-API-HowTo is a short how-to guide for the Twitch API that was created for 
 3. Obtain a [Twitch API Client ID](https://www.twitch.tv/settings/connections)
 4. Insert your client ID at line 12 of apiCalls.js so it reads `var clientId = 'client_id=YOUR_CLIENT_ID';`
 5. Run `node apiCalls.js` at the `CS290-API-HowTo/` directory.
+6. Visit http://localhost:8080
