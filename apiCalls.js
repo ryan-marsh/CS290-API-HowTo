@@ -1,3 +1,5 @@
+'use strict';
+
 var express = require('express');
 var app = express();
 var handlebars = require('express-handlebars').create({defaultLayout:'main'});
@@ -6,7 +8,6 @@ var request = require('request');
 app.engine('handlebars', handlebars.engine);
 app.set('view engine', 'handlebars');
 app.use('/static', express.static('public'));
-app.set('port', 2000);
 
 var apiVersion = 'api_version=3';
 var clientId = 'client_id='; // insert Twitch Client ID here
@@ -73,6 +74,9 @@ app.use(function(err, req, res, next){
   res.render('500');
 });
 
-app.listen(app.get('port'), function(){
-  console.log('Express started on http://localhost:' + app.get('port') + '; press Ctrl-C to terminate.');
+const PORT = process.env.PORT || 8080;
+app.set('port', PORT);
+app.listen(PORT, function(){
+  console.log(`Express started app on port ${PORT}.`); 
+  console.log('Press Ctrl-C to terminate.');
 });
