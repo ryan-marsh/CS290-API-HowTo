@@ -5,14 +5,14 @@
 </p>
 <h2>API Access</h2>
 <p>
-	We’ll be accessing the Twitch API through the base URL <code>https://api.twitch.tv/kraken</code>. Every section of the API can be accessed by appending to this URL and making it more specific. We will only be <em>getting</em> data from Twitch. All requests will be GET requests. The parameter <code>api_version=3</code> will be included in every request. This way all requests will use version 3 of the API. This is the current version of the API. Using this parameter prevents any code used from breaking after a new API version is introduced.
+	We’ll be accessing the Twitch API through the base URL <code>https://api.twitch.tv/kraken</code>. Every section of the API can be accessed by appending to this URL and making it more specific. We will only be <em>getting</em> data from Twitch. All requests will be GET requests. The parameter <code>api_version=3</code> will be included in every request. This way all requests will use version 3 of the API. This is the current version of the API. Using this parameter prevents any code used from breaking after a new API version is introduced. The parameter <code>client_id=#</code> will also be included in every request. The client ID is required for every request made to the Twitch API as a request rate limiter. Your own client ID can be obtained through the connections tab in your Twitch account settings. In this how-to, the client_id parameter value will be the placeholder: #.
 </p>
 <h2>Using Node.js and its Request Module</h2>
 <p>
 	All HTTP requests will be made using Node.js and the Request module to avoid any issues with client-side HTTP calls and CORS. Making the HTTP calls server-side with Node enables us to sidestep potential problems and to log API call results to the Node.js command prompt. Here’s what a call to the base API looks like using these tools:
 </p>
 <pre>
-request('https://api.twitch.tv/kraken?api_version=3', function(err, response, body){
+request('https://api.twitch.tv/kraken?api_version=3&client_id=#', function(err, response, body){
 	console.log(body);
 });
 </pre>
@@ -68,7 +68,7 @@ request('https://api.twitch.tv/kraken?api_version=3', function(err, response, bo
 	If we want the names of every subscriber emoticon for LIRIK’s Twitch chat, we could filter the channel’s emoticons by the <code>subscriber_only</code> property and then output a list of every <code>regex</code> property in that filtered list. Here’s an example of how to do that:
 </p>
 <pre>
-request('https://api.twitch.tv/kraken/chat/LIRIK/emoticons?api_version=3', function(err, response, body){
+request('https://api.twitch.tv/kraken/chat/LIRIK/emoticons?api_version=3&client_id=#', function(err, response, body){
 	var emoticons = JSON.parse(body).emoticons;
 	var subEmotes = emoticons.filter(function(current){
 		return current.subscriber_only === true;
@@ -87,7 +87,7 @@ request('https://api.twitch.tv/kraken/chat/LIRIK/emoticons?api_version=3', funct
 	We can get a list of the top games being streamed on Twitch by making a call to the URL, <code>https://api.twitch.tv/kraken/games/top</code>. By default, this will return a list of the top 10 games on Twitch. We can limit the amount of games returned to 1 by including the parameter <code>limit=1</code> in the URL. Here is an example highlighting how to log the top game on Twitch to the console:
 </p>
 <pre>
-request('https://api.twitch.tv/kraken/games/top?limit=1&api_version=3', function(err, response, body){
+request('https://api.twitch.tv/kraken/games/top?limit=1&api_version=3&client_id=#', function(err, response, body){
 	console.log(JSON.parse(body).top[0]);
 });
 </pre>
@@ -126,7 +126,7 @@ request('https://api.twitch.tv/kraken/games/top?limit=1&api_version=3', function
 	console.log(JSON.parse(body).top[0].viewers);
 });
 </pre>
-<h4>The viewer count for the {{topGame}} is currently: {{viewers}}.</h4>
+<h4>The viewer count for {{topGame}} is currently: {{viewers}}.</h4>
 <br>
 <br>
 <h1 class="text-center">Teams</h1>
@@ -135,7 +135,7 @@ request('https://api.twitch.tv/kraken/games/top?limit=1&api_version=3', function
 	We can get a list of the teams that a user’s channel is part of by making a call to the URL, <code>https://api.twitch.tv/kraken/channels/test_channel/teams</code>. <code>test_channel</code> should be replaced by the name of the channel you want team information on. If we wanted to log the teams that LIRIK is currently part of, we could make the following request:
 </p>
 <pre>
-request('https://api.twitch.tv/kraken/channels/LIRIK/teams?api_version=3', function(err, response, body){
+request('https://api.twitch.tv/kraken/channels/LIRIK/teams?api_version=3&client_id=#', function(err, response, body){
 	console.log(JSON.parse(body));
 });
 </pre>
@@ -162,7 +162,7 @@ request('https://api.twitch.tv/kraken/channels/LIRIK/teams?api_version=3', funct
 	One way we can use the team object is to get the display name of the first team that a channel is part of. We could get the display name of LIRIK’s first team with the following request:
 </p>
 <pre>
-request('https://api.twitch.tv/kraken/channels/LIRIK/teams?api_version=3', function(err, response, body){
+request('https://api.twitch.tv/kraken/channels/LIRIK/teams?api_version=3&client_id=#', function(err, response, body){
 	console.log(JSON.parse(body).teams[0].display_name);
 });
 </pre>
