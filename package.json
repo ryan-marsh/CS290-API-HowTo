@@ -1,0 +1,26 @@
+{
+  "name": "cs290-api-howto",
+  "version": "1.0.0",
+  "description": "A short how-to for the Twitch API",
+  "main": "apiCalls.js",
+  "dependencies": {
+    "express": "^4.14.0",
+    "express-handlebars": "^3.0.0",
+    "mocha": "^3.2.0",
+    "request": "^2.79.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "node apiCalls.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ryan-marsh/CS290-API-HowTo.git"
+  },
+  "author": "Ryan Marsh",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ryan-marsh/CS290-API-HowTo/issues"
+  },
+  "homepage": "https://github.com/ryan-marsh/CS290-API-HowTo#readme"
+}
