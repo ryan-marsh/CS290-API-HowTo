@@ -9,14 +9,15 @@ app.use('/static', express.static('public'));
 app.set('port', 2000);
 
 var apiVersion = 'api_version=3';
+var clientId = 'client_id='; // insert Twitch Client ID here
 
 app.get('/', function(req, res, next){
 	var context = {};
-	request('https://api.twitch.tv/kraken/games/top?limit=1&' + apiVersion, function(err, response, body){
+	request('https://api.twitch.tv/kraken/games/top?limit=1&' + apiVersion + '&' + clientId, function(err, response, body){
 		if(!err && response.statusCode < 400){
 			context.viewers = JSON.parse(body).top[0].viewers;
 			context.topGame = JSON.parse(body).top[0].game.name;
-			request('https://api.twitch.tv/kraken/chat/LIRIK/emoticons?' + apiVersion, function(err, response, body){
+			request('https://api.twitch.tv/kraken/chat/LIRIK/emoticons?' + apiVersion + '&' + clientId, function(err, response, body){
 				if(!err && response.statusCode < 400){
 					var emoticons = JSON.parse(body).emoticons;
 					var subEmotes = emoticons.filter(function(current){
@@ -27,7 +28,7 @@ app.get('/', function(req, res, next){
 						firstFive.push(subEmotes[i].regex);
 					}
 					context.emotes = firstFive;
-					request('https://api.twitch.tv/kraken/channels/LIRIK/teams?' + apiVersion, function(err, response, body){
+					request('https://api.twitch.tv/kraken/channels/LIRIK/teams?' + apiVersion + '&' + clientId, function(err, response, body){
 						if(!err && response.statusCode < 400){
 							context.team = JSON.parse(body).teams[0].display_name;
 							res.render('home', context);
